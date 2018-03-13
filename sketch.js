@@ -9,7 +9,6 @@ let end
 let currentLast
 let bfsQueue
 let dfsStack
-let astarVisiteds
 let astarSet
 
 let launchBfs = false
@@ -74,7 +73,6 @@ function setup() {
   })
 
   select("#astar").mouseClicked(() => {
-    astarVisiteds = new Set()
     astarSet = new Set()
     astarSet.add(start)
     launchAstar = true
