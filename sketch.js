@@ -13,11 +13,15 @@ let astarSet
 
 let launchBfs = false
 let launchDfs = false
+let launchBestfs = false
 let launchAstar = false
 let done = false
+let mouseDown = false
 
 const cellWidth = width / nbCols
 const cellHeight = height / nbRows
+
+let pathLength
 
 function resetToEmpty() {
   // create all the cells
@@ -48,12 +52,18 @@ function resetToEmpty() {
   launchBfs = false
   launchDfs = false
   launchAstar = false
+  launchBestfs = false
+  pathSize = 0
   done = false
+
+  pathLength.html("Path length : " + pathSize)
 }
 
 function setup() {
   createCanvas(width, height)
   background(255)
+
+  pathLength = createSpan("", width, height)
 
   resetToEmpty()
   noLoop()
@@ -69,6 +79,13 @@ function setup() {
     dfsStack = []
     dfsStack.push(start)
     launchDfs = true
+    loop()
+  })
+
+  select("#bestfs").mouseClicked(() => {
+    bestfsSet = new Set()
+    bestfsSet.add(start)
+    launchBestfs = true
     loop()
   })
 
@@ -104,13 +121,44 @@ function draw() {
     dfsAlgorithm()
   }
 
+  if (launchBestfs) {
+    bestfsAlgorithm()
+  }
+
   if (launchAstar) {
     astarAlgorithm()
+  }
+
+  if (mouseDown) {
+    buildWall()
   }
 
   if (done) {
     showPath()
   }
+
+  pathLength.html("Path length : " + pathSize)
+}
+
+const buildWall = () => {
+  for (let i = 0; i < nbCols; i++) {
+    for (let j = 0; j < nbRows; j++) {
+      if (grid[i][j].i * cellWidth < mouseX && grid[i][j].i * cellWidth + cellWidth > mouseX
+      && grid[i][j].j * cellHeight < mouseY && grid[i][j].j * cellHeight + cellHeight > mouseY) {
+        grid[i][j].isWall = true
+      }
+    }
+  }
+}
+
+function mousePressed(event) {
+  mouseDown = true
+  loop()
+}
+
+function mouseReleased() {
+  mouseDown = false
+  noLoop()
 }
 
 const showPath = () => {
@@ -119,6 +167,7 @@ const showPath = () => {
     noLoop()
     return
   }
+  pathSize++
   currentLast.partOfPath = true
   currentLast = currentLast.parent
 }
@@ -179,10 +228,10 @@ const dfsAlgorithm = () => {
   }
 }
 
-const getLowestScoreCell = () => {
+const getLowestScoreCell = (set) => {
   let min = 10000000
   let minCell = null
-  astarSet.forEach(cell => {
+  set.forEach(cell => {
     if (cell.score < min) {
       min = cell.score
       minCell = cell
@@ -206,11 +255,31 @@ const heuristic = cell => {
   return mahattanDist * trueDist
 }
 
+const bestfsAlgorithm = () => {
+  if (bestfsSet.size === 0) {
+    noLoop()
+  }
+  const current = getLowestScoreCell(bestfsSet)
+  if (current === end) {
+    launchBestfs = false
+    done = true
+  }
+  bestfsSet.delete(current)
+  current.visited = true
+
+  getNeighbours(current).forEach(neighbour => {
+    if (!testSetContains(bestfsSet, neighbour)) 
+      neighbour.parent = current
+      neighbour.score = heuristic(neighbour)
+      bestfsSet.add(neighbour)
+  })
+}
+
 const astarAlgorithm = () => {
   if (astarSet.size === 0) {
     noLoop()
   }
-  const current = getLowestScoreCell()
+  const current = getLowestScoreCell(astarSet)
   if (current === end) {
     launchAstar = false
     done = true
