@@ -17,6 +17,7 @@ let launchBestfs = false
 let launchAstar = false
 let done = false
 let mouseDown = false
+let currentHoveredCell = ""
 
 const cellWidth = width / nbCols
 const cellHeight = height / nbRows
@@ -145,7 +146,10 @@ const buildWall = () => {
     for (let j = 0; j < nbRows; j++) {
       if (grid[i][j].i * cellWidth < mouseX && grid[i][j].i * cellWidth + cellWidth > mouseX
       && grid[i][j].j * cellHeight < mouseY && grid[i][j].j * cellHeight + cellHeight > mouseY) {
-        grid[i][j].isWall = true
+        const idx = `${i}-${j}`
+        if (currentHoveredCell !== idx)
+          grid[i][j].isWall = !grid[i][j].isWall
+        currentHoveredCell = idx
       }
     }
   }
@@ -158,6 +162,7 @@ function mousePressed(event) {
 
 function mouseReleased() {
   mouseDown = false
+  currentHoveredCell = ""
   noLoop()
 }
 
@@ -290,7 +295,7 @@ const astarAlgorithm = () => {
   getNeighbours(current).forEach(neighbour => {
     if (!testSetContains(astarSet, neighbour)) 
       neighbour.parent = current
-      neighbour.score = heuristic(neighbour) + current.score / 1.03
+      neighbour.score = heuristic(neighbour) + current.score
       astarSet.add(neighbour)
   })
 }
