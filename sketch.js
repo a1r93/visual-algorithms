@@ -9,7 +9,7 @@ let end
 let currentLast
 let bfsQueue
 let dfsStack
-let astarSet
+let astarTree
 
 let launchBfs = false
 let launchDfs = false
@@ -42,10 +42,10 @@ function resetToEmpty() {
   currentLast = end
 
   // set the walls
-  for(i = 2; i < nbRows - 2; i++) {
+  for (i = 2; i < nbRows - 2; i++) {
     grid[25][i].setAsWall()
   }
-  for(i = 15; i < 25; i++) {
+  for (i = 15; i < 25; i++) {
     grid[i][2].setAsWall()
     grid[i][nbRows - 3].setAsWall()
   }
@@ -91,8 +91,8 @@ function setup() {
   })
 
   select("#astar").mouseClicked(() => {
-    astarSet = new Set()
-    astarSet.add(start)
+    console.log(start)
+    astarTree = new BinaryTree(new Node(start))
     launchAstar = true
     loop()
   })
@@ -144,11 +144,14 @@ function draw() {
 const buildWall = () => {
   for (let i = 0; i < nbCols; i++) {
     for (let j = 0; j < nbRows; j++) {
-      if (grid[i][j].i * cellWidth < mouseX && grid[i][j].i * cellWidth + cellWidth > mouseX
-      && grid[i][j].j * cellHeight < mouseY && grid[i][j].j * cellHeight + cellHeight > mouseY) {
+      if (
+        grid[i][j].i * cellWidth < mouseX &&
+        grid[i][j].i * cellWidth + cellWidth > mouseX &&
+        grid[i][j].j * cellHeight < mouseY &&
+        grid[i][j].j * cellHeight + cellHeight > mouseY
+      ) {
         const idx = `${i}-${j}`
-        if (currentHoveredCell !== idx)
-          grid[i][j].isWall = !grid[i][j].isWall
+        if (currentHoveredCell !== idx) grid[i][j].isWall = !grid[i][j].isWall
         currentHoveredCell = idx
       }
     }
@@ -177,19 +180,35 @@ const showPath = () => {
   currentLast = currentLast.parent
 }
 
-const getNeighbours = (cell) => {
+const getNeighbours = cell => {
   const neighbours = []
 
-  if (cell.j !== 0 && !grid[cell.i][cell.j - 1].isWall && !grid[cell.i][cell.j - 1].visited) {
+  if (
+    cell.j !== 0 &&
+    !grid[cell.i][cell.j - 1].isWall &&
+    !grid[cell.i][cell.j - 1].visited
+  ) {
     neighbours.push(grid[cell.i][cell.j - 1])
   }
-  if (cell.j !== nbRows - 1 && !grid[cell.i][cell.j + 1].isWall && !grid[cell.i][cell.j + 1].visited) {
+  if (
+    cell.j !== nbRows - 1 &&
+    !grid[cell.i][cell.j + 1].isWall &&
+    !grid[cell.i][cell.j + 1].visited
+  ) {
     neighbours.push(grid[cell.i][cell.j + 1])
   }
-  if (cell.i !== 0 && !grid[cell.i - 1][cell.j].isWall && !grid[cell.i - 1][cell.j].visited) {
+  if (
+    cell.i !== 0 &&
+    !grid[cell.i - 1][cell.j].isWall &&
+    !grid[cell.i - 1][cell.j].visited
+  ) {
     neighbours.push(grid[cell.i - 1][cell.j])
   }
-  if (cell.i !== nbCols - 1 && !grid[cell.i + 1][cell.j].isWall && !grid[cell.i + 1][cell.j].visited) {
+  if (
+    cell.i !== nbCols - 1 &&
+    !grid[cell.i + 1][cell.j].isWall &&
+    !grid[cell.i + 1][cell.j].visited
+  ) {
     neighbours.push(grid[cell.i + 1][cell.j])
   }
 
@@ -233,7 +252,7 @@ const dfsAlgorithm = () => {
   }
 }
 
-const getLowestScoreCell = (set) => {
+const getLowestScoreCell = set => {
   let min = 10000000
   let minCell = null
   set.forEach(cell => {
@@ -256,7 +275,12 @@ const testSetContains = (testSet, cell) => {
 
 const heuristic = cell => {
   const mahattanDist = Math.abs(end.i - cell.i) + Math.abs(end.j - cell.j)
-  const trueDist = dist(cell.i * cellWidth, cell.j * cellHeight, end.i * cellWidth, end.j * cellHeight)
+  const trueDist = dist(
+    cell.i * cellWidth,
+    cell.j * cellHeight,
+    end.i * cellWidth,
+    end.j * cellHeight
+  )
   return mahattanDist * trueDist
 }
 
@@ -273,30 +297,27 @@ const bestfsAlgorithm = () => {
   current.visited = true
 
   getNeighbours(current).forEach(neighbour => {
-    if (!testSetContains(bestfsSet, neighbour)) 
-      neighbour.parent = current
-      neighbour.score = heuristic(neighbour)
-      bestfsSet.add(neighbour)
+    if (!testSetContains(bestfsSet, neighbour)) neighbour.parent = current
+    neighbour.score = heuristic(neighbour)
+    bestfsSet.add(neighbour)
   })
 }
 
 const astarAlgorithm = () => {
-  if (astarSet.size === 0) {
+  if (astarTree.isEmpty()) {
     noLoop()
   }
-  const current = getLowestScoreCell(astarSet)
+  const current = astarTree.pop()
   if (current === end) {
     launchAstar = false
     done = true
   }
-  astarSet.delete(current)
   current.visited = true
 
   getNeighbours(current).forEach(neighbour => {
-    if (!testSetContains(astarSet, neighbour)) 
-      neighbour.parent = current
-      neighbour.score = heuristic(neighbour) + current.score
-      astarSet.add(neighbour)
+    if (!astarTree.contains(neighbour)) neighbour.parent = current
+    neighbour.score = heuristic(neighbour) + current.score
+    astarTree.insert(new Node(neighbour))
   })
 }
 
@@ -312,18 +333,12 @@ function Cell(i, j, parent) {
   this.score = 0
 
   this.show = function() {
-    if (this.partOfPath)
-      fill(0, 255, 255)
-    else if (this.isStart)
-      fill(255, 0, 0)
-    else if (this.isEnd)
-      fill(0, 255, 0)
-    else if (this.isWall)
-      fill(0)
-    else if (this.visited)
-      fill(0, 0, 255)
-    else
-      fill(255)
+    if (this.partOfPath) fill(0, 255, 255)
+    else if (this.isStart) fill(255, 0, 0)
+    else if (this.isEnd) fill(0, 255, 0)
+    else if (this.isWall) fill(0)
+    else if (this.visited) fill(0, 0, 255)
+    else fill(255)
     stroke(0)
     rect(this.i * cellWidth, this.j * cellHeight, cellWidth - 1, cellHeight - 1)
   }
@@ -340,3 +355,97 @@ function Cell(i, j, parent) {
     this.isWall = true
   }
 }
+
+class BinaryTree {
+  constructor(root) {
+    this.root = root
+    this.insert = this.insert.bind(this)
+    this.pop = this.pop.bind(this)
+    this.isEmpty = this.isEmpty.bind(this)
+  }
+
+  insert(node) {
+    if (!this.root) {
+      this.root = node
+      return this
+    }
+    if (this.root.getValue() > node.getValue()) {
+      this.root.setLeftBrother(this.root.leftBrother.insert(node))
+      return this
+    } else if (this.root.getValue() <= node.getValue()) {
+      this.root.setRightBrother(this.root.rightBrother.insert(node))
+      return this
+    }
+  }
+
+  print(level = 1, place = "center") {
+    if (this.root) {
+      console.log("level : " + level + ", " + place)
+      console.log(this.root.getValue())
+      this.root.leftBrother.print(level + 1, "left")
+      this.root.rightBrother.print(level + 1, "right")
+    }
+  }
+
+  isEmpty() {
+    return this.root === undefined
+  }
+
+  /**
+   * Returns the lowest value
+   */
+  pop() {
+    if (!this.root) {
+      return -1
+    }
+    if (!this.root.leftBrother.root) {
+      const toReturn = this.root.element
+      if (this.root.rightBrother.root) {
+        this.root = this.root.rightBrother.root
+      } else {
+        this.root = undefined
+      }
+      return toReturn
+    }
+    return this.root.leftBrother.pop()
+  }
+
+  contains(element) {
+    if (!this.root) return false
+    if (this.root.getValue() === element.score) {
+      return true
+    }
+    if (this.root.getValue() > element.score && this.root.leftBrother) {
+      return this.root.leftBrother.contains(element)
+    }
+    if (this.root.getValue() <= element.score && this.root.rightBrother) {
+      return this.root.rightBrother.contains(element)
+    }
+    return false
+  }
+}
+
+function Node(element) {
+  this.element = element
+  this.leftBrother = new BinaryTree()
+  this.rightBrother = new BinaryTree()
+
+  this.setLeftBrother = function(tree) {
+    this.leftBrother = tree
+  }
+
+  this.setRightBrother = function(tree) {
+    this.rightBrother = tree
+  }
+
+  this.getValue = function() {
+    return this.element.score
+  }
+}
+
+const next = new BinaryTree(new Node(4))
+next.insert(new Node(2))
+next.insert(new Node(8))
+next.insert(new Node(3))
+next.insert(new Node(7))
+next.insert(new Node(9))

@@ -1,0 +1,24 @@
+{
+  "plugins": [
+    "import",
+    "react"
+  ],
+  "env": {
+    "jest": true
+  },
+  "rules": {
+    "semi": 0,
+    "quotes": [
+      1,
+      "double"
+    ],
+    "comma-dangle": 0,
+    "no-underscore-dangle": "off",
+    "react/prop-types": "off"
+  },
+  "extends": [
+    "react-app",
+    "airbnb",
+    "prettier"
+  ]
+}
