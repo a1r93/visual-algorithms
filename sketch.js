@@ -369,12 +369,62 @@ class BinaryTree {
       this.root = node
       return this
     }
-    if (this.root.getValue() > node.getValue()) {
-      this.root.setLeftBrother(this.root.leftBrother.insert(node))
-      return this
-    } else if (this.root.getValue() <= node.getValue()) {
-      this.root.setRightBrother(this.root.rightBrother.insert(node))
-      return this
+    if (
+      (this.root.rightBrother.isEmpty() && this.root.leftBrother.isEmpty()) ||
+      (!this.root.rightBrother.isEmpty() && !this.root.leftBrother.isEmpty())
+    ) {
+      if (this.root.getValue() > node.getValue()) {
+        this.root.setLeftBrother(this.root.leftBrother.insert(node))
+        return this
+      } else if (this.root.getValue() <= node.getValue()) {
+        this.root.setRightBrother(this.root.rightBrother.insert(node))
+        return this
+      }
+    }
+
+    // testing cases where we have to up the values a level
+    if (
+      node.getValue() > this.root.getValue() &&
+      this.root.leftBrother.isEmpty()
+    ) {
+      if (this.root.rightBrother.root.getValue() > node.getValue()) {
+        const tmp = _.clone(this.root)
+        this.root = node
+        this.root.setRightBrother(tmp.rightBrother)
+        this.root.setLeftBrother(new BinaryTree(new Node(tmp.element)))
+        return this
+      } else {
+        const tmp = _.clone(this.root)
+        this.root = tmp.rightBrother.root
+        this.root.setLeftBrother(new BinaryTree(new Node(tmp.element)))
+        this.root.setRightBrother(new BinaryTree(node))
+        return this
+      }
+    } else if (
+      node.getValue() <= this.root.getValue() &&
+      this.root.rightBrother.isEmpty()
+    ) {
+      if (this.root.leftBrother.root.getValue() <= node.getValue()) {
+        const tmp = _.clone(this.root)
+        this.root = node
+        this.root.setLeftBrother(tmp.leftBrother)
+        this.root.setRightBrother(new BinaryTree(new Node(tmp.element)))
+        return this
+      } else {
+        const tmp = _.clone(this.root)
+        this.root = tmp.leftBrother.root
+        this.root.setRightBrother(new BinaryTree(new Node(tmp.element)))
+        this.root.setLeftBrother(new BinaryTree(node))
+        return this
+      }
+    } else {
+      if (this.root.getValue() > node.getValue()) {
+        this.root.setLeftBrother(this.root.leftBrother.insert(node))
+        return this
+      } else if (this.root.getValue() <= node.getValue()) {
+        this.root.setRightBrother(this.root.rightBrother.insert(node))
+        return this
+      }
     }
   }
 
@@ -443,9 +493,13 @@ function Node(element) {
   }
 }
 
-const next = new BinaryTree(new Node(4))
-next.insert(new Node(2))
-next.insert(new Node(8))
-next.insert(new Node(3))
-next.insert(new Node(7))
-next.insert(new Node(9))
+// const next = new BinaryTree(new Node(4))
+// for (let i = 0; i < 1000; i += 1) {
+//   next.insert(new Node(Math.floor(Math.random() * (1000 - 1) + 1)))
+// }
+
+// next.insert(new Node(976))
+// next.insert(new Node(722))
+// next.insert(new Node(904))
+// next.insert(new Node(982))
+// next.insert(new Node(234))

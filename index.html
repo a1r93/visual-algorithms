@@ -1,22 +1,31 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0>
-    <style> body {padding: 0; margin: 0;} </style>
-    <script src="./p5.min.js"></script>
-    <script src="./addons/p5.dom.min.js"></script>
-    <script src="./addons/p5.sound.min.js"></script>
-    <script src="sketch.js"></script>
-    <script src="node.js"></script>
-    <script src="tree.js"></script>
-  </head>
-  <body>
-    <div>
-        <button style="margin: 10px;" id="bfs">Breadth-FS</button>
-        <button style="margin: 10px;" id="dfs">DFS</button>
-        <button style="margin: 10px;" id="bestfs">Best-FS</button>
-        <button style="margin: 10px;" id="astar">a*</button>
-        <button style="margin: 10px;" id="reset">Reset</button>
-    </div>
-  </body>
+
+<head>
+  <meta name="viewport" width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+  <script src="./p5.min.js"></script>
+  <script src="./addons/p5.dom.min.js"></script>
+  <script src="./addons/p5.sound.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.core.js"></script>
+  <script src="sketch.js"></script>
+  <script src="node.js"></script>
+  <script src="tree.js"></script>
+</head>
+
+<body>
+  <div>
+    <button style="margin: 10px;" id="bfs">Breadth-FS</button>
+    <button style="margin: 10px;" id="dfs">DFS</button>
+    <button style="margin: 10px;" id="bestfs">Best-FS</button>
+    <button style="margin: 10px;" id="astar">a*</button>
+    <button style="margin: 10px;" id="reset">Reset</button>
+  </div>
+</body>
+
 </html>
